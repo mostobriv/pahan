@@ -3,8 +3,7 @@ services:
   pahan:
     build: .
     ulimits:
+      nproc: 1024
       nofile:
-        soft:
-          4096
-        hard:
-          4096
+        soft: 4096
+        hard: 4096

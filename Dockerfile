@@ -19,7 +19,7 @@ ADD traffic/ traffic/
 ADD web/ web/
 RUN mkdir logs/
 ADD dumps/ dumps/
-ADD main.py pahan.py
+ADD pahan.py pahan.py
 ADD settings.py settings.py
 
 CMD python3 /pahan/pahan.py

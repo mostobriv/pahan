@@ -1,9 +1,12 @@
-version: "3"
+version: "3.7"
+
 services:
-  pahan:
-    build: .
-    ulimits:
-      nproc: 1024
-      nofile:
-        soft: 4096
-        hard: 4096
+    pahan:
+        build: .
+        ulimits:
+            nproc: 1024
+            nofile:
+                soft: 4096
+                hard: 4096
+        mem_limit: 256m
+        mem_reservation: 128m

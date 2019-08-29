@@ -35,6 +35,7 @@ class Masta:
         while True:
             try:
                 await self.slicer.slice_pcaps()
+                return
             except Exception as e:
                 self._logger.error(f'Can\'t properly slice pcaps from slicer-storage: {e}', e)
             

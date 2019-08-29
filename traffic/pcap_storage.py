@@ -20,4 +20,4 @@ class DirectoryPcapStorage(AbstractPcapStorage):
         self.directory = directory
 
     def get_list_of_pcaps(self):
-        return glob.iglob('%s/**/[^.]*.pcap' % self.directory, recursive=True)
+        return glob.iglob('%s/**/*.pcap' % self.directory, recursive=True)

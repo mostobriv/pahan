@@ -15,7 +15,7 @@ do
     local function init_listener()
         local SYN = 2
         local tap = Listener.new("frame", "tcp")
-        os.execute(string.format("mkdir -p %s.parts/", pcap_file))
+        os.execute(string.format("mkdir -p streams/%s.parts/", pcap_file))
 
         function tap.reset()
             for _, value in pairs(streams_table) do
@@ -34,7 +34,7 @@ do
             local index = tcp_stream + 1
             local part_pcap
             if streams_table[index] == nil then
-                part_pcap = string.format("%s.parts/%s-%s_%s-%s_%d.pcap", pcap_file, src_addr, src_port, dst_addr, dst_port, index)
+                part_pcap = string.format("streams/%s.parts/%s-%s_%s-%s_%d.pcap", pcap_file, src_addr, src_port, dst_addr, dst_port, index)
                 streams_table[index] = {
                     dumper = nil,
                     corrupted = not (syn == 1),

@@ -1,0 +1,10 @@
+version: "3"
+services:
+  pahan:
+    build: .
+    ulimits:
+      nofile:
+        soft:
+          4096
+        hard:
+          4096

@@ -17,8 +17,8 @@ WORKDIR /pahan/
 
 ADD traffic/ traffic/
 ADD web/ web/
-RUN mkdir logs/
-ADD dumps/ dumps/
+# RUN mkdir logs/
+# ADD dumps/ dumps/
 ADD pahan.py pahan.py
 ADD settings.py settings.py
 

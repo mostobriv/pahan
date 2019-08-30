@@ -1,6 +1,11 @@
 do
+    local function basename(str)
+        local name = string.gsub(str, "(.*/)(.*)", "%2")
+        return name
+    end
+
     local args = { ... }
-    local pcap_file = args[1]
+    local pcap_file = basename(args[1])
     assert(pcap_file, "You should pass -X lua_script1:$PATH_TO_SOURCE_PCAP_FILE")
     local streams_table = {}
     local tcp_stream_f = Field.new("tcp.stream")

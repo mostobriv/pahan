@@ -1,8 +1,12 @@
-version: "3.7"
+version: "2"
 
 services:
     pahan:
         build: .
+        volumes:
+            - ./logs:/pahan/logs
+            - ./dumps:/pahan/dumps
+            - ./streams:/pahan/streams
         ulimits:
             nproc: 1024
             nofile:

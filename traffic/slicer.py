@@ -27,6 +27,7 @@ class Slicer(AbstractSlicer):
         try:
             proc = await asyncio.create_subprocess_shell(f"tshark -q -X lua_script:traffic/tcp-stream-splitter.lua -X lua_script1:{path} -n -r {path}", 
                                                 stdout=PIPE, stderr=PIPE)
+            # Result should be in f"streams/{path:t}.parts/*.pcap"
             stdout, stderr = await proc.communicate()
             retcode = proc.returncode
         except Exception as e:

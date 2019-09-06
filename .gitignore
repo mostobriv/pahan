@@ -1,3 +1,6 @@
+# Out files
+big_pcap_file.pcap
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

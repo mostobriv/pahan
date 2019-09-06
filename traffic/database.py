@@ -27,7 +27,7 @@ class AbstractDbControl:
     def __init__(self) -> None:
         self._logger = Logger("Slicer")
 
-    _fname_re = re.compile("(\w+)-(\d+)_(\w+)-(\d+)_(\d+).pcap")
+    _fname_re = re.compile("([\d.]+)-(\d+)_([\d.]+)-(\d+)_(\d+).pcap")
     def _parse_file_name(self, name : str, pcap_name : str) -> TrafficInfo:
         # a:name - name of the stream file
         # a:pcap_name - name of the original pcap that was split
@@ -43,13 +43,13 @@ class AbstractDbControl:
                           ,stream_index = int(m.group(5))
                           )
 
-    async def put_chunk(self, file_name : str, orig_pcap_name : str) -> None:
+    async def put_stream(self, file_name : str, orig_pcap_name : str) -> None:
         """
         Put one stream into the database
         """
         raise NotImplementedError()
 
-class RedisControl(AbstractDbControl):
+class Redis(AbstractDbControl):
     def __init__(self) -> None:
         """
         Dummy class constructor, !!!do not call!!!
@@ -62,19 +62,20 @@ class RedisControl(AbstractDbControl):
     async def new(cls
                  ,addr : str, loop : asyncio.AbstractEventLoop
                  ,pool_size : Optional[Tuple[int, int]] #None to create single connection
-                 ) -> None:
+                 ) -> 'Redis':
         self = cls()
         if pool_size is not None:
             self.redis = await aioredis.create_redis_pool(
                  addr
-                ,minsize  = pool_size[0]
-                ,max_size = pool_size[1]
+                ,minsize = pool_size[0]
+                ,maxsize = pool_size[1]
                 ,loop = loop
             )
         else:
             self.redis = await aioredis.create_redis(
                 addr, loop=loop
             )
+        return self
 
     """
     Redis database format is the following:
@@ -88,7 +89,7 @@ class RedisControl(AbstractDbControl):
     FieldDstAddr = "DstAddr"
     FieldContent = "Content"
 
-    async def put_chunk(self, file_name : str, orig_name : str) -> None:
+    async def put_stream(self, file_name : str, orig_name : str) -> None:
         # don't need all path info for this
         orig_name = path.basename(orig_name)
         info = self._parse_file_name(file_name, orig_name)

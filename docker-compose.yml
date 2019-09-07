@@ -14,3 +14,9 @@ services:
                 hard: 4096
         mem_limit: 256m
         mem_reservation: 128m
+    redis:
+        image: "redis:5.0.5"
+        volumes:
+            - ./redis-data:/data
+        ports:
+            - "6379:6379"

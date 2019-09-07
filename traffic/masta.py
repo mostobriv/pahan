@@ -37,9 +37,17 @@ class Masta:
                 await self.slicer.slice_pcaps()
             except Exception as e:
                 self._logger.error(f'Can\'t properly slice pcaps from slicer-storage: {e}', e)
-            
+
             await asyncio.sleep(5)
 
 
     async def _run_crawler(self):
-        pass
+        await self.crawler.init_database()
+        while True:
+            try:
+                await self.crawler.crawl()
+            except Exception as e:
+                self._logger.error(f'Can\'t properly slice pcaps from slicer-storage: {e}', e)
+
+            await asyncio.sleep(5)
+

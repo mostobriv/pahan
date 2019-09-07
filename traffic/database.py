@@ -12,11 +12,10 @@ import asyncio
 import aioredis
 import os.path as path
 
-from typing import NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple, Dict
 
 
 class TrafficInfo(NamedTuple):
-    pcap_file : str
     stream_index : int
     src_addr : str
     src_port : int
@@ -28,22 +27,20 @@ class AbstractDbControl:
         self._logger = Logger("Slicer")
 
     _fname_re = re.compile("([\d.]+)-(\d+)_([\d.]+)-(\d+)_(\d+).pcap")
-    def _parse_file_name(self, name : str, pcap_name : str) -> TrafficInfo:
+    def _parse_file_name(self, name : str) -> TrafficInfo:
         # a:name - name of the stream file
-        # a:pcap_name - name of the original pcap that was split
         base_name = path.basename(name)
         m = self._fname_re.match(base_name)
         if m is None:
             raise LookupError("Malformed stream file name")
-        return TrafficInfo(pcap_file = pcap_name
-                          ,src_addr = m.group(1)
+        return TrafficInfo(src_addr = m.group(1)
                           ,src_port = int(m.group(2))
                           ,dst_addr = m.group(3)
                           ,dst_port = int(m.group(4))
                           ,stream_index = int(m.group(5))
                           )
 
-    async def put_stream(self, file_name : str, orig_pcap_name : str) -> None:
+    async def put_stream(self, file_name : str) -> None:
         """
         Put one stream into the database
         """
@@ -55,13 +52,15 @@ class Redis(AbstractDbControl):
         Dummy class constructor, !!!do not call!!!
         """
         super().__init__()
+        self._last_index : Dict[int, int] # port to index
+        self._last_index = {}
         # an anonymous class to appease mypy
         self.redis = type("RedisMock", (object,), {})()
     # Async class constructor
     @classmethod
     async def new(cls
                  ,addr : str, loop : asyncio.AbstractEventLoop
-                 ,pool_size : Optional[Tuple[int, int]] #None to create single connection
+                 ,pool_size : Optional[Tuple[int, int]] = None #None to create single connection
                  ) -> 'Redis':
         self = cls()
         if pool_size is not None:
@@ -77,6 +76,7 @@ class Redis(AbstractDbControl):
             )
         return self
 
+
     """
     Redis database format is the following:
     1. The stream is kept in a hash
@@ -89,11 +89,22 @@ class Redis(AbstractDbControl):
     FieldDstAddr = "DstAddr"
     FieldContent = "Content"
 
-    async def put_stream(self, file_name : str, orig_name : str) -> None:
-        # don't need all path info for this
-        orig_name = path.basename(orig_name)
-        info = self._parse_file_name(file_name, orig_name)
-        key = f"{info.pcap_file}#{info.stream_index}"
+
+    async def new_index(self, port : int) -> int:
+        ind = None
+        if port not in self._last_index:
+            ind = 0
+        else:
+            ind = self._last_index[port]
+        self._last_index[port] = ind + 1
+        return ind
+
+
+    async def put_stream(self, file_name : str) -> None:
+        info = self._parse_file_name(file_name)
+        port = info.dst_port
+        index = await self.new_index(port)
+        key = f"{port}#{index}"
         # maybe run those concurrently? I don't actually think it matters that much
         await self.redis.hset(key, self.FieldSrcPort, info.src_port)
         await self.redis.hset(key, self.FieldSrcAddr, info.src_addr)

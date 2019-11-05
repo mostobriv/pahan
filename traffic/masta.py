@@ -4,6 +4,7 @@ from traffic.configurator import Configurator
 from traffic.logger import Logger
 
 import asyncio
+import time
 
 class Masta:
 
@@ -35,10 +36,11 @@ class Masta:
         while True:
             try:
                 await self.slicer.slice_pcaps()
+
             except Exception as e:
                 self._logger.error(f'Can\'t properly slice pcaps from slicer-storage: {e}', e)
             
-            await asyncio.sleep(5)
+            await asyncio.sleep(500)
 
 
     async def _run_crawler(self):

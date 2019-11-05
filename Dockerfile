@@ -1,16 +1,16 @@
-FROM ubuntu:18.04
+FROM python:3.7
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -qy \
-    python3-dev \
-    python3-pip \
+RUN apt update && apt-get install -qy \
     build-essential \
-    tshark 
+    tcpdump
 
-RUN pip3 install \
+RUN pip install \
     coloredlogs \
     aiohttp \
-    asyncio
+    asyncio \
+    scapy \
+    memory_profiler 
 
 RUN mkdir /pahan/
 WORKDIR /pahan/
@@ -22,4 +22,4 @@ ADD web/ web/
 ADD pahan.py pahan.py
 ADD settings.py settings.py
 
-CMD python3 /pahan/pahan.py
+CMD python /pahan/pahan.py

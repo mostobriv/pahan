@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 
 services:
     pahan:
@@ -8,9 +8,15 @@ services:
             - ./dumps:/pahan/dumps
             - ./streams:/pahan/streams
         ulimits:
-            nproc: 1024
+            nproc: 256
             nofile:
                 soft: 4096
                 hard: 4096
-        mem_limit: 256m
-        mem_reservation: 128m
+
+    database:
+        image: postgres
+        restart: always
+        environment:
+            POSTGRES_USER:     test
+            POSTGRES_PASSWORD: test
+            POSTGRES_DB:       test

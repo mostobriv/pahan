@@ -10,7 +10,8 @@ RUN pip install \
     aiohttp \
     asyncio \
     scapy \
-    memory_profiler 
+    memory_profiler \
+    asyncpg
 
 RUN mkdir /pahan/
 WORKDIR /pahan/

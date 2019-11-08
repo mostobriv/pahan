@@ -6,13 +6,17 @@ SLICER = {
     'type': 'traffic.slicer.Slicer',
     'args': [
         'dumps'
-    ]
-}
-
-
-CRAWLER = {
-    'type': 'traffic.crawler.Crawler',
-    'args': [
-        'streams'
-    ]
+    ],
+    'kwargs': {
+        'database': {
+            'type': 'traffic.database.PgDatabase',
+            'kwargs': {
+                "user"              :   "test",
+                "database"          :   "test",
+                "password"          :   "test",
+                "host"              :   "database",
+                "command_timeout"   :   60
+            }
+        }
+    }
 }

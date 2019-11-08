@@ -4,6 +4,7 @@ from traffic import utils
 from traffic.logger import Logger
 
 
+# thx to @andgein
 class Configurator:
     DEFAULT_SETTINGS_MODULE_NAME = 'settings'
 
@@ -19,7 +20,8 @@ class Configurator:
             return default_value
         raise ValueError('Specify variable %s in settings file (%s)' % (setting_name, self.settings_module_name))
 
-    def _get_settings_object(self, setting_name, may_missing=False):
+    # TODO: add support of recursive parsing of settings objects
+    def _get_settings_object(self, setting_name, may_missing=False, recursive=False):
         object_spec = self._get_settings_variable(setting_name, may_missing=may_missing)
         if object_spec is None:
             return None
@@ -68,7 +70,6 @@ class Configurator:
     def get_flag_format(self):
         return self._get_settings_variable('FLAG_FORMAT')
         
-
     def get_slicer(self):
         return self._get_settings_object('SLICER')
 

@@ -9,7 +9,6 @@ from scapy.all import AsyncSniffer, IPSession, ARP, IP, TCP, ICMP, UDP
 
 
 
-# thx to @andgein for the idea of abstract classes <3
 class AbstractSlicer:
     def __init__(self):
         self._logger = Logger('Slicer')
@@ -45,10 +44,12 @@ def full_duplex(packets):
 
 class Slicer(AbstractSlicer):
 
-    def __init__(self, pcaps_directory: str):
+    def __init__(self, pcaps_directory: str, database=None):
         super().__init__()
         self.storage = DirectoryPcapStorage(pcaps_directory)
         self.sessions_dumper = SessionsDumper()
+
+        self.db = database
 
 
     async def _slice_one_pcap(self, path: str):
@@ -63,7 +64,7 @@ class Slicer(AbstractSlicer):
                 await asyncio.sleep(load_delay)
             
             sessions = sn.results.sessions(full_duplex)
-            self.sessions_dumper.dump(sessions)
+            await self.sessions_dumper.save(sessions)
         except Exception as e:
             self._logger.error(f'Got an exception {e}', e)
 
@@ -72,24 +73,24 @@ class Slicer(AbstractSlicer):
 
 
     async def slice_pcaps(self):
+        await self.db.push_stream()
 
         workers_total = 5
         q = asyncio.Queue(workers_total * 3)
         feeder_is_alive = True
 
         async def worker(name, queue):
+            nonlocal feeder_is_alive
             while feeder_is_alive or not queue.empty():
                 try:
                     file_name = await queue.get()
                     await self._slice_one_pcap(file_name)
-                    queue.task_done()
                 except Exception as e:
                     self._logger.error(f'Got an exception inside of {name}: {e}', e)
-            self._logger.debug(f'{name} died')
     
-
         
         async def feeder(name, queue):
+            nonlocal feeder_is_alive
             for file_name in self.storage.get_list_of_pcaps():
                 try:
                     await q.put(file_name)
@@ -97,6 +98,13 @@ class Slicer(AbstractSlicer):
                     self._logger.error(f'Got an exception inside of {name}: {e}', e)
             feeder_is_alive = False
         
-
+        # TODO: verify that workers-blocking bug won't appear again
+        # it's happening when feeder does not spawns first, some workers simply blocking themselves
+        # while waiting for getting tasks from queue
+        # Changed asyncio.wait to asyncio.gather to control order of spawned coroutines, but all the same,
+        # consider about proper patch
+        
         worker_pool = [worker('slicer_worker_%d' % i, q) for i in range(workers_total)]
-        await asyncio.wait(worker_pool + [feeder('feeder', q)])
+        await asyncio.gather(feeder('feeder', q), *worker_pool)
+
+        self._logger.debug('slicer is done')

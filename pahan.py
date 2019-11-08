@@ -1,6 +1,6 @@
 from traffic.configurator import Configurator
-from traffic.masta import Masta
+from traffic.master import Master
 
 if __name__ == '__main__':
-    m = Masta.from_configurator(Configurator())
+    m = Master.from_configurator(Configurator())
     m.run()

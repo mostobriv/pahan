@@ -1,7 +1,7 @@
 import importlib
 
 from traffic import utils
-from traffic.logger import Logger
+from backends.logger import Logger
 
 
 # thx to @andgein
@@ -37,6 +37,7 @@ class Configurator:
                 self.settings_module_name,
                 type(object_spec)
             ))
+        
         object_type_name = self._get_dict_value(object_spec, 'type', setting_name)
         object_args = object_spec.get('args', ())
         object_kwargs = object_spec.get('kwargs', {})
@@ -70,8 +71,11 @@ class Configurator:
     def get_flag_format(self):
         return self._get_settings_variable('FLAG_FORMAT')
         
+    def get_database(self):
+        return self._get_settings_object('DATABASE')
+        
     def get_slicer(self):
         return self._get_settings_object('SLICER')
 
-    def get_crawler(self):
-        return self._get_settings_object('CRAWLER')
+    def get_webapp(self):
+        return self._get_settings_object('WEBAPP')

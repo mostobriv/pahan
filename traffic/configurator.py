@@ -20,7 +20,7 @@ class Configurator:
             return default_value
         raise ValueError('Specify variable %s in settings file (%s)' % (setting_name, self.settings_module_name))
 
-    # TODO: add support of recursive parsing of settings objects
+    # TODO: add support for recursive parsing of settings objects
     def _get_settings_object(self, setting_name, may_missing=False, recursive=False):
         object_spec = self._get_settings_variable(setting_name, may_missing=may_missing)
         if object_spec is None:
@@ -77,5 +77,10 @@ class Configurator:
     def get_slicer(self):
         return self._get_settings_object('SLICER')
 
+<<<<<<< HEAD
     def get_webapp(self):
         return self._get_settings_object('WEBAPP')
+=======
+    def get_crawler(self):
+        return self._get_settings_object('CRAWLER')
+>>>>>>> 49a034757fc7927653f24e1fceb1483d0d847774

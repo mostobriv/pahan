@@ -77,10 +77,5 @@ class Configurator:
     def get_slicer(self):
         return self._get_settings_object('SLICER')
 
-<<<<<<< HEAD
     def get_webapp(self):
         return self._get_settings_object('WEBAPP')
-=======
-    def get_crawler(self):
-        return self._get_settings_object('CRAWLER')
->>>>>>> 49a034757fc7927653f24e1fceb1483d0d847774

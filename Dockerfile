@@ -16,8 +16,11 @@ RUN pip install \
 RUN mkdir /pahan/
 WORKDIR /pahan/
 
+EXPOSE 8888
+
 ADD traffic/ traffic/
 ADD web/ web/
+ADD backends/ backends/
 # RUN mkdir logs/
 # ADD dumps/ dumps/
 ADD pahan.py pahan.py

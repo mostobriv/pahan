@@ -4,14 +4,16 @@ services:
     pahan:
         build: .
         volumes:
-            - ./logs:/pahan/logs
-            - ./dumps:/pahan/dumps
-            - ./streams:/pahan/streams
+            - /Users/mostobriv/share/git_stuff/test/pahan/logs:/pahan/logs
+            - /Users/mostobriv/share/git_stuff/test/pahan/dumps:/pahan/dumps
+            - /Users/mostobriv/share/git_stuff/test/pahan/streams:/pahan/streams
         ulimits:
             nproc: 256
             nofile:
                 soft: 4096
                 hard: 4096
+        ports:
+            - 8888:8888
 
     database:
         image: postgres

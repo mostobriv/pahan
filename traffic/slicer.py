@@ -1,11 +1,13 @@
-from traffic.logger import Logger
+from backends.logger import Logger
 from traffic.pcap_storage import DirectoryPcapStorage
 from traffic.sessions_dumper import SessionsDumper
+from backends.database import AbstractDBControl
 
 import time
 import asyncio
 from asyncio.subprocess import PIPE
 from scapy.all import AsyncSniffer, IPSession, ARP, IP, TCP, ICMP, UDP
+from typing import Optional
 
 
 
@@ -44,13 +46,15 @@ def full_duplex(packets):
 
 class Slicer(AbstractSlicer):
 
-    def __init__(self, pcaps_directory: str, database=None):
+    def __init__(self, pcaps_directory: str, 
+                database: AbstractDBControl,
+                ports: list):
         super().__init__()
         self.storage = DirectoryPcapStorage(pcaps_directory)
         self.sessions_dumper = SessionsDumper()
 
+        self.ports = ports
         self.db = database
-
 
     async def _slice_one_pcap(self, path: str):
         load_delay = 1
@@ -64,16 +68,16 @@ class Slicer(AbstractSlicer):
                 await asyncio.sleep(load_delay)
             
             sessions = sn.results.sessions(full_duplex)
-            await self.sessions_dumper.save(sessions)
+            sessions = await self.sessions_dumper.retrieve(sessions)
+            await self.db.push_streams(sessions)
+
         except Exception as e:
             self._logger.error(f'Got an exception {e}', e)
 
         self._logger.debug(f'Finished slicing of {path} with total {len(sessions)} sessions')
 
 
-
     async def slice_pcaps(self):
-        await self.db.push_stream()
 
         workers_total = 5
         q = asyncio.Queue(workers_total * 3)
@@ -87,8 +91,7 @@ class Slicer(AbstractSlicer):
                     await self._slice_one_pcap(file_name)
                 except Exception as e:
                     self._logger.error(f'Got an exception inside of {name}: {e}', e)
-    
-        
+
         async def feeder(name, queue):
             nonlocal feeder_is_alive
             for file_name in self.storage.get_list_of_pcaps():
@@ -106,5 +109,3 @@ class Slicer(AbstractSlicer):
         
         worker_pool = [worker('slicer_worker_%d' % i, q) for i in range(workers_total)]
         await asyncio.gather(feeder('feeder', q), *worker_pool)
-
-        self._logger.debug('slicer is done')

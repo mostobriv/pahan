@@ -1,4 +1,4 @@
-from traffic.logger import Logger
+from backends.logger import Logger
 
 
 from scapy.all import Raw
@@ -9,6 +9,7 @@ import asyncio
 import asyncpg
 
 import json
+import base64
 
 
 class AbstractSessionsDumper:
@@ -34,32 +35,26 @@ class SessionsDumper(AbstractSessionsDumper):
     def __init__(self):
         super().__init__()
 
-    async def save(self, sessions):
+    async def retrieve(self, sessions):
         loop = asyncio.get_event_loop()
-        sessions = await loop.run_in_executor(None, self.retrieve, sessions)
+        sessions = await loop.run_in_executor(None, self._retrieve_inner, sessions)
+        return sessions
         
             
-    def retrieve(self, sessions):
+    def _retrieve_inner(self, indirect_sessions):
         tcp_data = list()
-        for _, v in sessions.items():
+        for _, v in indirect_sessions.items():
             tcp_data.append(SHolder([(pack['IP'].src, pack['Raw'].load) for pack in v if Raw in pack], v[0].time))
 
-    # Primary key is time of first incoming package from pcap
-
-        import time, os
-        foo = str(tcp_data[0].timestamp).replace('.', '_')
-        os.system(f'mkdir dumps/tasty_tests/{foo}')
-
-        ctr = 0
+        ordered_sessions = list()
         for s in sorted(tcp_data, key=lambda x: x.timestamp):
-            # bar = str(ctr)
-            dump = dict()
-            pind = 0
-            # with open(f'dumps/tasty_tests/{foo}/{bar}', 'w') as f:
+            dump = list()
             for src, data in groupby(s.session, key=lambda x: x[0]):
                 buf = reduce(lambda summ, x: summ + x[1], data, bytes())
-                dump[pind] = {"src": src, "data": buf.decode('latin')}
-                pind+= 1
-                # json.dump(dump, f)
-            ctr+= 1
+                dump.append(json.dumps({"src_ip": src, 
+                                        "data": base64.b64encode(buf).decode() 
+                                    }
+                                ))
+            ordered_sessions.append(json.dumps(dump))
 
+        return ordered_sessions

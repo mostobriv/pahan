@@ -1,4 +1,4 @@
-from traffic.logger import Logger
+from backends.logger import Logger
 
 import os
 import glob
@@ -19,5 +19,8 @@ class DirectoryPcapStorage(AbstractPcapStorage):
         super().__init__()
         self.directory = directory
 
-    def get_list_of_pcaps(self):
-        return glob.iglob('%s/**/*.pcap' % self.directory, recursive=True)
+    def get_list_of_pcaps(self, port=None):
+        if port is None:
+            return glob.iglob('%s/**/*.pcap' % self.directory, recursive=True)
+        else:
+            return glob.iglob('%s/**/%s/**/*.pcap' % self.directory, recursive=True)
